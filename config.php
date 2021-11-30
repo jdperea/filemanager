@@ -25,17 +25,20 @@ $use_auth = true;
 
 // Login user name and password
 // Users: array('Username' => 'Password', 'Username2' => 'Password2', ...)
-// Generate secure password hash - https://tinyfilemanager.github.io/docs/pwd.html
-$mysqli = new mysqli("localhost", "dev", "12345", "auth_fileman");
-$flag = 1;
+// Generate secure password hash - https://tinyfilemanager.github.io/docs/pwd.html // git@github.com:cockpit-project/cockpit.git
+$config = parse_ini_file(dirname(__FILE__) . '/data.ini', TRUE);
+$mysqli = new mysqli( $config['sf']['host'], $config['sf']['user'], $config['sf']['passwd'], $config['sf']['database'] );
+$flag = 0;
 $auth_users = array();
-$resultado = $mysqli->query("SELECT u.*,a.* FROM users u JOIN user_app ua ON (u.id_user = ua.id_user) JOIN app a ON (ua.id_app = a.id_app) WHERE 1", MYSQLI_USE_RESULT);
-$resultado = $resultado->fetch_assoc();
-var_dump($resultado);
-foreach ($resultado as $res){
-    $auth_users[$res['usuario']] = $res['passwrd'];
-    $flag = 0;
+$sql = "SELECT u.*,a.* FROM users u JOIN user_app ua ON (u.id_user = ua.id_user) JOIN app a ON (ua.id_app = a.id_app) WHERE 1";
+
+if ($result = $mysqli->query($sql)) {
+    while($obj = $result->fetch_object()){
+        $auth_users[$obj->usuario] = $obj->passwrd;
+        $flag = 1;
+    }
 }
+$result->close();
 
 if($flag === 0){
     $auth_users = array(
@@ -43,9 +46,6 @@ if($flag === 0){
 //    'user' => '$2y$10$Fg6Dz8oH9fPoZ2jJan5tZuv6Z4Kp7avtQ9bDfrdRntXtPeiMAZyGO' //12345
     );
 }
-
-
-var_dump($auth_users);
 
 //set application theme
 //options - 'light' and 'dark'
